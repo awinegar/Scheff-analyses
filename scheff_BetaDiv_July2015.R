@@ -1073,19 +1073,49 @@ RuzickaD <- function(vec1, vec2, method="ruzicka", BCD=FALSE, ref=TRUE)
 ##################################################################################################
 
 ####Use count data to calculate rarefied species richness for each sample. 
-#Note: count data should be verified that it represents most accurate counting/taxonomy scheme.#DO THIS BEFORE PROCEEDING. 
+#Note: count data should be verified that it represents most accurate counting/taxonomy scheme.
+#Done. 
 
-clad<- read.csv(file.choose()) #schefferville_lmerdata_MAR2015_clad.csv
-#File path: C:\Users\Winegardner\Documents\MCGILL\PhD chapters and projects\Schefferville general\Analysis data\Mixed effect model data
+clad<- read.csv(file.choose()) #schefferville_clad_bd_JULY2015.csv
+#File path: C:\Users\Winegardner\Documents\MCGILL\PhD chapters and projects\Schefferville general\Analysis data\Beta diversity data
 #Count matrix of Cladocerans from schefferville_lmerdata_Mar2015.xls
-#Counts rounded to nearest whole integer. 
+#Counts rounded to nearest whole integer.
+#Alona OTU2 re-classified as Alona spp.
+#Bosmina lumped together into Bosmina spp. 
 
-row.names(clad) <- clad[,1]
-clad <- clad[,-1]
-Srar <- rarefy(clad, min(rowSums(clad)))
-Srar
+##Column descriptions
+#Sample_ID_Master - Sample ID including core, interval # etc. 
+#Sample_ID_T_Order - Numbers the intervals starting at 0 for oldest interval, includes lake code (e.g. DAR_T0, DAR_T1) (for use if comparing 1 interval to the next)
+#Counter - Either Katherine Velghe (KV) or Natasha Salter (NS)
+#Lake - Dauriat, Knob, Dolly or Denault
+#Est_year - Estimated year based on final age models 
+#Time_Period - Pre-mining (up to 1953), Mining (1954-1982), Post-mining (1983-present)
+#Time_period_grouping - T0_PreM, T1_Min, T2_PosM, for grouping into 3 time periods and using each time period as an individual matrix --> for temporal beta
+#Species columns, arranged alphabetically
+
+##Work with DAR and KB only for the time being (Dolly and Denault only have top/bottom samples)
+#DAR
+clad.dar<- as.data.frame(subset(clad, Lake == "Dauriat ", drop=T))
+
+#KB
+clad.kb<- as.data.frame(subset(clad, Lake == "Knob", drop=T))
+
+##Calculate rarefied richness based on the individual lakes (not pooled together)
+#DAR
+row.names(clad.dar) <- clad.dar[,1]
+Srar.dar <- rarefy(clad.dar[,8:42], min(rowSums(clad.dar[,8:42])))
+Srar.dar
 
 #Save as dataframe and bind to sample ID column (with lake, year, time period)
+Srar.dar<- as.data.frame(Srar.dar)
+
+#KB
+row.names(clad.kb) <- clad.kb[,1]
+Srar.kb <- rarefy(clad.kb[,8:42], min(rowSums(clad.kb[,8:42])))
+Srar.kb
+
+#Save as dataframe and bind to sample ID column (with lake, year, time period)
+Srar.kb<- as.data.frame(Srar.kb)
 
 ##################################################################################################
 
@@ -1095,13 +1125,32 @@ Srar
 ##################################################################################################
 
 ####Calculate alpha diversity- Shannon Weiner and Simpson (evenness) for each intervaal####
-#Shannon
+##Shannon
+#DAR
+Shannon.dar<- diversity(clad.dar[,8:42], index = "shannon")
+Shannon.dar<- as.data.frame(Shannon.dar)
 
-#Simpson
+#KB
+Shannon.kb<- diversity(clad.kb[,8:42], index = "shannon")
+Shannon.kb<- as.data.frame(Shannon.kb)
 
-#Bind both alpha diversity metrics to dataframe with Srar
+##Simpson
+#DAR
+Simpson.dar<- diversity(clad.dar[,8:42], index = "simpson")
+Simpson.dar<- as.data.frame(Simpson.dar)
 
+#KB
+Simpson.kb<- diversity(clad.kb[,8:42], index = "simpson")
+Simpson.kb<- as.data.frame(Simpson.kb)
+
+##Bind both alpha diversity metrics to dataframe with Srar
 #Should now have a matrix with sample/lake information columns as well as Srar, Shannon, Simpson 
+
+#DAR
+clad.div.dar<- as.data.frame(cbind(clad.dar, Srar.dar, Shannon.dar, Simpson.dar))
+
+#KB
+clad.div.kb<- as.data.frame(cbind(clad.kb, Srar.kb, Shannon.kb, Simpson.kb))
 
 ##################################################################################################
 
@@ -1114,14 +1163,77 @@ Srar
 
 ##Dauriat
 #So will have to make "matrices" for each individual time sample or better to do in periods? 
-
 #Then compare one time period to next. 
-
 #Calculate total temporal BD for each time period comparison.
-
 #Calculate species gain and loss components of temporal beta for each time period comparison. 
-
 #Calculate which time period comparisons show significant beta (i.e. significant temporal change)
+
+#Subset DAR into the three "Time_period_grouping" 
+clad.dar.T0<- as.data.frame(subset(clad.dar, Time_period_grouping == "T0_PreM", drop=T))
+clad.dar.T1<- as.data.frame(subset(clad.dar, Time_period_grouping == "T1_Min", drop=T))
+clad.dar.T2<- as.data.frame(subset(clad.dar, Time_period_grouping == "T2_PosM", drop=T))
+
+#Melt into long format, so can use ply to get averages 
+#T0
+clad.dar.T0long<- melt(clad.dar.T0, id.vars = c("Sample_ID_Master", "Sample_ID_T_order", "Counter", "Lake", "Est_year", "Time_period", "Time_period_grouping"))
+colnames(clad.dar.T0long) [8]<- 'Taxa'
+colnames(clad.dar.T0long) [9]<- 'Count'
+
+clad.darT0.mean<- ddply(clad.dar.T0long, "Taxa", summarize, mean_Count = mean(Count, na.rm=T))
+rownames(clad.darT0.mean)<- as.character(clad.darT0.mean[,1])
+
+clad.darT0mean.wide<-as.data.frame(t(clad.darT0.mean)) #but have taxa names as a row- just remove? 
+##CONTINUE HERE. 
+
+#T1
+
+
+
+#T2
+
+
+
+
+
+
+##Rough
+#Create an average assemblage for each Time_period_grouping 
+clad.darT0.mean<- as.data.frame(colMeans(clad.dar.T0[,8:42]))
+colnames(clad.darT0.mean) [1]<- 'Mean_count'
+
+clad.darT1.mean<- as.data.frame(colMeans(clad.dar.T1[,8:42]))
+colnames(clad.darT1.mean) [1]<- 'Mean_count'
+
+clad.darT2.mean<- as.data.frame(colMeans(clad.dar.T2[,8:42]))
+colnames(clad.darT2.mean) [1]<- 'Mean_count'
+  
+#Cast these long format back into wide format
+#T0
+clad.darT0.meanwide<- dcast(clad.darT0.mean, Mean_count)
+
+#T1
+
+#T2
+##
+
+#Temporal BD between the different time periods
+#T0 to T1
+bdtemp.darT0T1<- decompose.D2(clad.dar.T0[,8:42], clad.dar.T1[,8:42], den.type=2) #but need to just have one row for each. 
+
+#T1 to T2
+
+#T0 to T2
+
+
+#decompose.D2
+
+
+#Looking at output
+temp.D2.quant
+temp.D2quant.mat1<- as.data.frame(temp.D2.quant$mat1)
+temp.D2quant.mat2<- as.data.frame(temp.D2.quant$mat2)
+
+
 
 ##Knob 
 
