@@ -6,8 +6,8 @@
 #Previous script: scheff_LMER_March2015.R
 #R version: 3.1.2 (Pumpkin Helmet)
 
-##Last update: July 1, 2015 
-##Associated workspace: NOT SAVED YET 
+##Last update: July 5, 2015 
+##Associated workspace: workspace_scheff_BetaDiv.RData 
 ##Associated markdown: 
 ##Github: Scheff-analyses repository 
 
