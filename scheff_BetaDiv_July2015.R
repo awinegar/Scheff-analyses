@@ -27,6 +27,8 @@ library(vegan)
 library(plyr)
 library(reshape)
 library(reshape2)
+library(ggplot2)
+library(gridExtra)
 
 #Beta diversity 
 #No specific packages needed
@@ -1089,6 +1091,7 @@ clad<- read.csv(file.choose()) #schefferville_clad_bd_JULY2015.csv
 #Counter - Either Katherine Velghe (KV) or Natasha Salter (NS)
 #Lake - Dauriat, Knob, Dolly or Denault
 #Est_year - Estimated year based on final age models 
+#Est_year_numeric - Pre-1850 as 1850
 #Time_Period - Pre-mining (up to 1953), Mining (1954-1982), Post-mining (1983-present)
 #Time_period_grouping - T0_PreM, T1_Min, T2_PosM, for grouping into 3 time periods and using each time period as an individual matrix --> for temporal beta
 #Species columns, arranged alphabetically
@@ -1103,7 +1106,7 @@ clad.kb<- as.data.frame(subset(clad, Lake == "Knob", drop=T))
 ##Calculate rarefied richness based on the individual lakes (not pooled together)
 #DAR
 row.names(clad.dar) <- clad.dar[,1]
-Srar.dar <- rarefy(clad.dar[,8:42], min(rowSums(clad.dar[,8:42])))
+Srar.dar <- rarefy(clad.dar[,9:43], min(rowSums(clad.dar[,9:43])))
 Srar.dar
 
 #Save as dataframe and bind to sample ID column (with lake, year, time period)
@@ -1111,7 +1114,7 @@ Srar.dar<- as.data.frame(Srar.dar)
 
 #KB
 row.names(clad.kb) <- clad.kb[,1]
-Srar.kb <- rarefy(clad.kb[,8:42], min(rowSums(clad.kb[,8:42])))
+Srar.kb <- rarefy(clad.kb[,9:43], min(rowSums(clad.kb[,9:43])))
 Srar.kb
 
 #Save as dataframe and bind to sample ID column (with lake, year, time period)
@@ -1127,20 +1130,20 @@ Srar.kb<- as.data.frame(Srar.kb)
 ####Calculate alpha diversity- Shannon Weiner and Simpson (evenness) for each intervaal####
 ##Shannon
 #DAR
-Shannon.dar<- diversity(clad.dar[,8:42], index = "shannon")
+Shannon.dar<- diversity(clad.dar[,9:43], index = "shannon")
 Shannon.dar<- as.data.frame(Shannon.dar)
 
 #KB
-Shannon.kb<- diversity(clad.kb[,8:42], index = "shannon")
+Shannon.kb<- diversity(clad.kb[,9:43], index = "shannon")
 Shannon.kb<- as.data.frame(Shannon.kb)
 
 ##Simpson
 #DAR
-Simpson.dar<- diversity(clad.dar[,8:42], index = "simpson")
+Simpson.dar<- diversity(clad.dar[,9:43], index = "simpson")
 Simpson.dar<- as.data.frame(Simpson.dar)
 
 #KB
-Simpson.kb<- diversity(clad.kb[,8:42], index = "simpson")
+Simpson.kb<- diversity(clad.kb[,9:43], index = "simpson")
 Simpson.kb<- as.data.frame(Simpson.kb)
 
 ##Bind both alpha diversity metrics to dataframe with Srar
@@ -1154,6 +1157,74 @@ clad.div.kb<- as.data.frame(cbind(clad.kb, Srar.kb, Shannon.kb, Simpson.kb))
 
 ##################################################################################################
 
+##################################################################################################
+####ALPHA DIVERSITY (Shannon and Simpson)  FIGURES                                               #
+##################################################################################################
+
+##DAR
+#Srar
+s.dar.plot<- ggplot(clad.div.dar, aes(x=Est_year_numeric, y=Srar.dar)) + geom_point(size=4, colour="darkred") + geom_path(size=0.75, colour="darkred")
+s.dar.plot<- s.dar.plot + labs(x= "Estimated year", y= "Rarefied taxa S") + theme_bw()
+s.dar.plot<- s.dar.plot + theme(axis.text.x = element_text(colour="black", size=16))
+s.dar.plot<- s.dar.plot + theme(axis.text.y = element_text(colour="black", size=16))
+s.dar.plot<- s.dar.plot + theme(axis.title.x = element_text(size = rel(2), angle=00))
+s.dar.plot<- s.dar.plot + theme(axis.title.y = element_text(size = rel(2), angle=90))
+s.dar.plot<- s.dar.plot + annotate("rect", xmin=1954, xmax=1982, ymin=1, ymax=10, alpha=0.2)
+
+#Shannon
+shan.dar.plot<- ggplot(clad.div.dar, aes(x=Est_year_numeric, y=Shannon.dar)) + geom_point(size=4, colour="darkred") + geom_path(size=0.75, colour="darkred")
+shan.dar.plot<- shan.dar.plot + labs(x= "Estimated year", y= "Shannon diversity") + theme_bw()
+shan.dar.plot<- shan.dar.plot + theme(axis.text.x = element_text(colour="black", size=16))
+shan.dar.plot<- shan.dar.plot + theme(axis.text.y = element_text(colour="black", size=16))
+shan.dar.plot<- shan.dar.plot + theme(axis.title.x = element_text(size = rel(2), angle=00))
+shan.dar.plot<- shan.dar.plot + theme(axis.title.y = element_text(size = rel(2), angle=90))
+shan.dar.plot<- shan.dar.plot + annotate("rect", xmin=1954, xmax=1982, ymin=0, ymax=2.1, alpha=0.2)
+
+#Simpson
+simp.dar.plot<- ggplot(clad.div.dar, aes(x=Est_year_numeric, y=Simpson.dar)) + geom_point(size=4, colour="darkred") + geom_path(size=0.75, colour="darkred")
+simp.dar.plot<- simp.dar.plot + labs(x= "Estimated year", y= "Evenness") + theme_bw()
+simp.dar.plot<- simp.dar.plot + theme(axis.text.x = element_text(colour="black", size=16))
+simp.dar.plot<- simp.dar.plot + theme(axis.text.y = element_text(colour="black", size=16))
+simp.dar.plot<- simp.dar.plot + theme(axis.title.x = element_text(size = rel(2), angle=00))
+simp.dar.plot<- simp.dar.plot + theme(axis.title.y = element_text(size = rel(2), angle=90))
+simp.dar.plot<- simp.dar.plot + annotate("rect", xmin=1954, xmax=1982, ymin=0, ymax=1.0, alpha=0.2)
+
+##KB
+#Srar
+s.kb.plot<- ggplot(clad.div.kb, aes(x=Est_year_numeric, y=Srar.kb)) + geom_point(size=4, colour="darkblue") + geom_path(size=0.75, colour="darkblue")
+s.kb.plot<- s.kb.plot + labs(x= "Estimated year", y= "Rarefied taxa S") + theme_bw()
+s.kb.plot<- s.kb.plot + theme(axis.text.x = element_text(colour="black", size=16))
+s.kb.plot<- s.kb.plot + theme(axis.text.y = element_text(colour="black", size=16))
+s.kb.plot<- s.kb.plot + theme(axis.title.x = element_text(size = rel(2), angle=00))
+s.kb.plot<- s.kb.plot + theme(axis.title.y = element_text(size = rel(2), angle=90))
+s.kb.plot<- s.kb.plot + annotate("rect", xmin=1954, xmax=1982, ymin=8, ymax=17, alpha=0.2)
+
+#Shannon
+shan.kb.plot<- ggplot(clad.div.kb, aes(x=Est_year_numeric, y=Shannon.kb)) + geom_point(size=4, colour="darkblue") + geom_path(size=0.75, colour="darkblue")
+shan.kb.plot<- shan.kb.plot + labs(x= "Estimated year", y= "Shannon diversity") + theme_bw()
+shan.kb.plot<- shan.kb.plot + theme(axis.text.x = element_text(colour="black", size=16))
+shan.kb.plot<- shan.kb.plot + theme(axis.text.y = element_text(colour="black", size=16))
+shan.kb.plot<- shan.kb.plot + theme(axis.title.x = element_text(size = rel(2), angle=00))
+shan.kb.plot<- shan.kb.plot + theme(axis.title.y = element_text(size = rel(2), angle=90))
+shan.kb.plot<- shan.kb.plot + annotate("rect", xmin=1954, xmax=1982, ymin=1.5, ymax=2.2, alpha=0.2)
+
+#simpson
+simp.kb.plot<- ggplot(clad.div.kb, aes(x=Est_year_numeric, y=Simpson.kb)) + geom_point(size=4, colour="darkblue") + geom_path(size=0.75, colour="darkblue")
+simp.kb.plot<- simp.kb.plot + labs(x= "Estimated year", y= "Evenness") + theme_bw()
+simp.kb.plot<- simp.kb.plot + theme(axis.text.x = element_text(colour="black", size=16))
+simp.kb.plot<- simp.kb.plot + theme(axis.text.y = element_text(colour="black", size=16))
+simp.kb.plot<- simp.kb.plot + theme(axis.title.x = element_text(size = rel(2), angle=00))
+simp.kb.plot<- simp.kb.plot + theme(axis.title.y = element_text(size = rel(2), angle=90))
+simp.kb.plot<- simp.kb.plot + annotate("rect", xmin=1954, xmax=1982, ymin=0.62, ymax=0.8, alpha=0.2)
+
+##Combo plots
+s.plot<- grid.arrange (s.dar.plot, s.kb.plot, nrow=2)
+
+shan.plot<- grid.arrange(shan.dar.plot, shan.kb.plot, nrow=2)
+
+simp.plot<- grid.arrange(simp.dar.plot, simp.kb.plot, nrow=2)
+
+##################################################################################################
 
 ##################################################################################################
 ####TEMPORAL BETA DIVERSITY                                                                      #
@@ -1173,69 +1244,133 @@ clad.dar.T0<- as.data.frame(subset(clad.dar, Time_period_grouping == "T0_PreM", 
 clad.dar.T1<- as.data.frame(subset(clad.dar, Time_period_grouping == "T1_Min", drop=T))
 clad.dar.T2<- as.data.frame(subset(clad.dar, Time_period_grouping == "T2_PosM", drop=T))
 
-#Melt into long format, so can use ply to get averages 
-#T0
-clad.dar.T0long<- melt(clad.dar.T0, id.vars = c("Sample_ID_Master", "Sample_ID_T_order", "Counter", "Lake", "Est_year", "Time_period", "Time_period_grouping"))
-colnames(clad.dar.T0long) [8]<- 'Taxa'
-colnames(clad.dar.T0long) [9]<- 'Count'
+#T0 - take average within time period
+T0.dar.avg<- as.data.frame(colMeans(clad.dar.T0[,8:42]))
+T0.dar.avg<- as.data.frame(t(T0.dar.avg))
 
-clad.darT0.mean<- ddply(clad.dar.T0long, "Taxa", summarize, mean_Count = mean(Count, na.rm=T))
-rownames(clad.darT0.mean)<- as.character(clad.darT0.mean[,1])
+#T1 - take average within time period
+T1.dar.avg<- as.data.frame(colMeans(clad.dar.T1[,8:42]))
+T1.dar.avg<- as.data.frame(t(T1.dar.avg))
 
-clad.darT0mean.wide<-as.data.frame(t(clad.darT0.mean)) #but have taxa names as a row- just remove? 
-##CONTINUE HERE. 
+#T2 - take average within time period
+T2.dar.avg<- as.data.frame(colMeans(clad.dar.T2[,8:42]))
+T2.dar.avg<- as.data.frame(t(T2.dar.avg))
 
-#T1
-
-
-
-#T2
-
-
-
-
-
-
-##Rough
-#Create an average assemblage for each Time_period_grouping 
-clad.darT0.mean<- as.data.frame(colMeans(clad.dar.T0[,8:42]))
-colnames(clad.darT0.mean) [1]<- 'Mean_count'
-
-clad.darT1.mean<- as.data.frame(colMeans(clad.dar.T1[,8:42]))
-colnames(clad.darT1.mean) [1]<- 'Mean_count'
-
-clad.darT2.mean<- as.data.frame(colMeans(clad.dar.T2[,8:42]))
-colnames(clad.darT2.mean) [1]<- 'Mean_count'
-  
-#Cast these long format back into wide format
-#T0
-clad.darT0.meanwide<- dcast(clad.darT0.mean, Mean_count)
-
-#T1
-
-#T2
-##
 
 #Temporal BD between the different time periods
 #T0 to T1
-bdtemp.darT0T1<- decompose.D2(clad.dar.T0[,8:42], clad.dar.T1[,8:42], den.type=2) #but need to just have one row for each. 
+bdtemp.darT0T1<- decompose.D2(T0.dar.avg, T1.dar.avg, den.type=2)  
+#T1 to T2
+bdtemp.darT1T2<- decompose.D2(T1.dar.avg, T2.dar.avg, den.type=2)  
+#T0 to T2
+bdtemp.darT0T2<- decompose.D2(T0.dar.avg, T2.dar.avg, den.type=2)  
+
+#Looking at output of total temporal beta diversity and species gain/loss components 
+#T0 to T1 (pre-mining to mining)
+bdtemp.darT0T1.mat2<- as.data.frame(bdtemp.darT0T1$mat2)
+
+#T1 to T2 (mining to post-mining)
+bdtemp.darT1T2.mat2<- as.data.frame(bdtemp.darT1T2$mat2)
+
+#T0 to T2 (pre-mining to post-mining)
+bdtemp.darT0T2.mat2<- as.data.frame(bdtemp.darT0T2$mat2)
+
+#Finding significant temporal beta diversity between the time periods
+#T0 to T1
+exceptsites.darT0T1<- paired.diff2(T0.dar.avg, T1.dar.avg, method="%difference", pa.tr=FALSE, nperm=9999, permute.sp=1, BCD=TRUE, replace=FALSE, clock=FALSE)
+#probably can't do because no permutation? 
 
 #T1 to T2
 
 #T0 to T2
 
 
-#decompose.D2
-
-
-#Looking at output
-temp.D2.quant
-temp.D2quant.mat1<- as.data.frame(temp.D2.quant$mat1)
-temp.D2quant.mat2<- as.data.frame(temp.D2.quant$mat2)
-
-
-
 ##Knob 
+#Subset DAR into the three "Time_period_grouping" 
+clad.kb.T0<- as.data.frame(subset(clad.kb, Time_period_grouping == "T0_PreM", drop=T))
+clad.kb.T1<- as.data.frame(subset(clad.kb, Time_period_grouping == "T1_Min", drop=T))
+clad.kb.T2<- as.data.frame(subset(clad.kb, Time_period_grouping == "T2_PosM", drop=T))
+
+#T0 - take average within time period
+T0.kb.avg<- as.data.frame(colMeans(clad.kb.T0[,8:42]))
+T0.kb.avg<- as.data.frame(t(T0.kb.avg))
+
+#T1 - take average within time period
+T1.kb.avg<- as.data.frame(colMeans(clad.kb.T1[,8:42]))
+T1.kb.avg<- as.data.frame(t(T1.kb.avg))
+
+#T2 - take average within time period
+T2.kb.avg<- as.data.frame(colMeans(clad.kb.T2[,8:42]))
+T2.kb.avg<- as.data.frame(t(T2.kb.avg))
+
+
+#Temporal BD between the different time periods
+#T0 to T1
+bdtemp.kbT0T1<- decompose.D2(T0.kb.avg, T1.kb.avg, den.type=2)  
+#T1 to T2
+bdtemp.kbT1T2<- decompose.D2(T1.kb.avg, T2.kb.avg, den.type=2)  
+#T0 to T2
+bdtemp.kbT0T2<- decompose.D2(T0.kb.avg, T2.kb.avg, den.type=2)  
+
+#Looking at output of total temporal beta diversity and species gain/loss components 
+#T0 to T1 (pre-mining to mining)
+bdtemp.kbT0T1.mat2<- as.data.frame(bdtemp.kbT0T1$mat2)
+
+#T1 to T2 (mining to post-mining)
+bdtemp.kbT1T2.mat2<- as.data.frame(bdtemp.kbT1T2$mat2)
+
+#T0 to T2 (pre-mining to post-mining)
+bdtemp.kbT0T2.mat2<- as.data.frame(bdtemp.kbT0T2$mat2)
+
+#Finding significant temporal beta diversity between the time periods
+#T0 to T1
+exceptsites.kbT0T1<- paired.diff2(T0.kb.avg, T1.kb.avg, method="%difference", pa.tr=FALSE, nperm=9999, permute.sp=1, BCD=TRUE, replace=FALSE, clock=FALSE)
+#probably can't do because no permutation? 
+
+#T1 to T2
+
+#T0 to T2
+
+
+##Looking at plots of temporal BD results 
+#Read in .csv that created with results. 
+temp.BD<- read.csv(file.choose()) #schefferville_bdtemp_res.csv
+#File path: C:\Users\Winegardner\Documents\MCGILL\PhD chapters and projects\Schefferville general\Analysis data\Beta diversity data
+#Species loss and gain components, not changed to total proportions. 
+
+#Subset into DAR and KB
+temp.BD.dar<- as.data.frame(subset(temp.BD, Lake == "DAR", drop=T))
+temp.BD.kb<- as.data.frame(subset(temp.BD, Lake == "KB", drop=T))
+
+#Make long
+temp.BD.dar.long<- melt(temp.BD.dar, id.vars=c("Lake", "Comparison"))
+colnames(temp.BD.dar.long) [3] <- 'Component'
+colnames(temp.BD.dar.long) [4] <- 'Value'
+
+temp.BD.kb.long<- melt(temp.BD.kb, id.vars=c("Lake", "Comparison"))
+colnames(temp.BD.kb.long) [3] <- 'Component'
+colnames(temp.BD.kb.long) [4] <- 'Value'
+
+#DAR plot
+bd.dar.plot<- ggplot(temp.BD.dar.long, aes(x=Comparison, y=Value, colour=Component)) + geom_point(size=4)
+bd.dar.plot<- bd.dar.plot + labs(x= "Time comparison", y= "Beta diversity") + theme_bw()
+bd.dar.plot<- bd.dar.plot + theme(axis.text.x = element_text(colour="black", size=16))
+bd.dar.plot<- bd.dar.plot + theme(axis.text.y = element_text(colour="black", size=16))
+bd.dar.plot<- bd.dar.plot + theme(axis.title.x = element_text(size = rel(2), angle=00))
+bd.dar.plot<- bd.dar.plot + theme(axis.title.y = element_text(size = rel(2), angle=90))
+bd.dar.plot<- bd.dar.plot + ggtitle("DAR")
+
+#KB plot
+bd.kb.plot<- ggplot(temp.BD.kb.long, aes(x=Comparison, y=Value, colour=Component)) + geom_point(size=4)
+bd.kb.plot<- bd.kb.plot + labs(x= "Time comparison", y= "Beta diversity") + theme_bw()
+bd.kb.plot<- bd.kb.plot + theme(axis.text.x = element_text(colour="black", size=16))
+bd.kb.plot<- bd.kb.plot + theme(axis.text.y = element_text(colour="black", size=16))
+bd.kb.plot<- bd.kb.plot + theme(axis.title.x = element_text(size = rel(2), angle=00))
+bd.kb.plot<- bd.kb.plot + theme(axis.title.y = element_text(size = rel(2), angle=90))
+bd.kb.plot<- bd.kb.plot + ggtitle("KNOB")
+
+#Combo
+bd.plot<- grid.arrange(bd.dar.plot, bd.kb.plot, nrow=2)
 
 ##################################################################################################
 
@@ -1246,3 +1381,9 @@ temp.D2quant.mat2<- as.data.frame(temp.D2.quant$mat2)
 
 
 ##################################################################################################
+
+
+
+
+
+
