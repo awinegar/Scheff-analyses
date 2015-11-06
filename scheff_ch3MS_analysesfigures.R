@@ -6,7 +6,7 @@
 #Previous script: Various R scripts from R studio scripts/Schefferville summer 2013
 #R version: 3.1.2 (Pumpkin Helmet)
 
-##Last update: Nov. 5, 2015
+##Last update: Nov. 6, 2015
 ##Associated workspace: 
 ##Associated markdown: 
 ##Associated .txt of R script: 
@@ -352,6 +352,9 @@ decompose.D2 <- function(Y1, Y2, den.type=2)
 
 #######See BetaDiv script##### 
 
+##Final corrections that need to be made for beta diversity --> Dauriat intervals, fix the 1921-1925 interval 
+#is 1921-1921- but need to sort out this dating. 
+
 #Raw data
 bd<- read.csv("schefferville_clad_bd_JULY2015.csv") #schefferville_clad_bd_JULY2015.csv
 
@@ -375,7 +378,8 @@ bd.DAR<- bd.DAR + theme(axis.text.x = element_text(colour="black", size=16, angl
 bd.DAR<- bd.DAR + theme(axis.text.y = element_text(colour="black", size=16))
 bd.DAR<- bd.DAR + theme(axis.title.x = element_text(size = rel(2), angle=00))
 bd.DAR<- bd.DAR + theme(axis.title.y = element_text(size = rel(2), angle=90))
-bd.DAR<- bd.DAR + scale_x_discrete(labels=c("Pre 1850 - Pre 1850","Pre 1850 - Pre 1850","Pre 1850 - Pre 1850","Pre 1850 - 1896", "1896 - 1921", "1921 - 1921", "1921 - 1929", "1929 - 1941", "1941 - 1960", "1960 - 1966", "1966 - 1969", "1969 - 1977", "1977 - 1986", "1986 - 1998", "1998 - 2006"))
+bd.DAR<- bd.DAR + scale_x_discrete(labels=c("Pre 1850 - Pre 1850","Pre 1850 - Pre 1850","Pre 1850 - Pre 1850","Pre 1850 - 1896", "1896 - 1921", "1921 - 1925", "1925 - 1929", "1929 - 1941", "1941 - 1960", "1960 - 1966", "1966 - 1969", "1969 - 1977", "1977 - 1986", "1986 - 1998", "1998 - 2006"))
+#changed [1921-1921 and 1921-1929] to [1921-1925 and 1925-1929] --> sort this out.  
 bd.DAR<- bd.DAR + annotate("text", x=1, y=0.7, label="(a)", size=12)
 bd.DAR<- bd.DAR + theme(legend.position="none")
 bd.DAR<- bd.DAR + annotate("text", x=15, y=0.45, label="Total", size=11, colour="black")
